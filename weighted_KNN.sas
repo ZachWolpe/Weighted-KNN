@@ -41,9 +41,12 @@ start K_nearest_neighbors(xy_train, xy_test, K);
 	do i=1 to ncol(dist);
 		col = dist[,i] || xy_train[,1];
 		call sort(col, {1});
-		pred = col[1:k,2];
+		pred = pred // col[1:k,2]`;
 	end;
-	
+
+	print (nrow(pred)) (nrow(xy_test)) (nrow(xy_train));	
+	print pred;
+
 	return k;
 finish K_nearest_neighbors;
 * ------------------------- K Nearest Neighbors Model -------------------------;
