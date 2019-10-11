@@ -26,15 +26,7 @@ call train_test_split;
 
 
 
-
-
-
-
-
-
-* specify data;
-call train_test_split;
-
+* ------------------------- K Nearest Neighbors Model -------------------------;
 start K_nearest_neighbors(xy_train, xy_test, K);
 	
 	* compute distance matrix;
@@ -45,9 +37,17 @@ start K_nearest_neighbors(xy_train, xy_test, K);
 		end;
 	end;
 	
-	print dist;
+	* sort data & collect K nearest;
+	do i=1 to ncol(dist);
+		col = dist[,i] || xy_train[,1];
+		call sort(col, {1});
+		pred = pred // col[1:k,2]`;
+	end;
+	
+	print pred;
 	return k;
 finish K_nearest_neighbors;
+* ------------------------- K Nearest Neighbors Model -------------------------;
 
 t = K_nearest_neighbors(xy_train, xy_test, 3);
 
@@ -78,15 +78,23 @@ end;
 
 
 * ------------------------- Weighting Function -------------------------;
-
 start weighting_function(points,distances);
 	weights = 1/distance;
 	return weights;
 finish weighting_function;
+* ------------------------- Weighting Function -------------------------;
 
 
 
 
+
+
+* ------------------------------ Bootstrap ------------------------------;
+samp = sample(1:n,n,'replace');
+
+
+
+* ------------------------------ Bootstrap ------------------------------;
 
 
 
