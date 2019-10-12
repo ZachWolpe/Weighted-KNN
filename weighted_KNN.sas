@@ -4,12 +4,12 @@ libname lib '/folders/myfolders/sasuser.v94/EKT 720/weighted_KNN/';
 
 data xy;
 set lib.yx;
-run;
+run; 
 proc print data=xy (obs=4);
 
 
 
-
+title 'K Nearest Neighbours';
 proc iml;
 use xy; read all into xy;
 n = nrow(xy);
