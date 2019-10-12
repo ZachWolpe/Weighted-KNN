@@ -15,7 +15,6 @@ use xy; read all into xy;
 n = nrow(xy);
 
 
-
 * ------------------------- Train Test Split -------------------------;
 start train_test_split;
 	in = uniform(J(n,1,1))<train_percentage;
@@ -25,9 +24,6 @@ finish train_test_split;
 * ------------------------- Train Test Split -------------------------;
 train_percentage = 0.8;
 call train_test_split;
-
-
-
 
 
 * --------------------- Create Visualization Grid ---------------------;
@@ -42,9 +38,6 @@ do i=x1_min to x1_max by 5;
 	end;
 end;
 * --------------------- Create Visualization Grid ---------------------;
-
-
-
 
 
 
@@ -90,7 +83,7 @@ pred = K_nearest_neighbors(xy_train, xy_test, K);
 
 
 * ------------------------------ Confusion Matrix ------------------------------;
-confusion_matrix = J(K,K,n);
+confusion_matrix = J(K,K,0);
 do i=1 to nrow(pred);
 	r=xy_test[i,1]; c=pred[i];
 	confusion_matrix[r,c] = confusion_matrix[r,c] + 1;
@@ -98,14 +91,12 @@ end;
 
 percent_confusion_matrix = confusion_matrix / (sum(confusion_matrix));
 accuracy = sum(diag(confusion_matrix))/sum(confusion_matrix);
-* ------------------------------ Confusion Matrix ------------------------------;
 print confusion_matrix percent_confusion_matrix accuracy;
-
+* ------------------------------ Confusion Matrix ------------------------------;
 
 
 * run on grid;
 grid_pred = K_nearest_neighbors(xy_train, grid, K);
-
 
 
 grid_results = (grid_pred || grid[,2:3] || J(nrow(grid_pred),1,1));
@@ -115,76 +106,35 @@ create res from res[colname={'yh' 'x1' 'x2' 'set'}];
 append from res;
 quit;
 
-proc sgplot data=res;
-	scatter y=x2 x=x1 / group=yh;
+
+
+
+
+* ----------------------------------- Visualize Results -----------------------------------;
+data rez;
+set res;
+if set=1 
+	then do;
+		grid_x1 = x1;
+		grid_x2 = x2;
+		grid_yh = yh;
+	end;
+if set=2 
+	then do;
+		true_x1 = x1;
+		true_x2 = x2;
+		true_yh = yh;
+	end;
 run;
 
+proc sgplot data=rez;
+	scatter x=true_x1 y=true_x2 / group=true_yh markerAttrs=(symbol=CircleFilled);
+	scatter x=grid_x1 y=grid_x2 / group=grid_yh markerAttrs=(symbol=X);
+title 'Grid Predictions';
+run;
+* ----------------------------------- Visualize Results -----------------------------------;
 
-
-
-
-
-
-
-
-
-
-proc sgplot data=test;
-	scatter x=x1 y=x2 / group=y markerattrs=(symbol=CircleFilled);
-
-
-
-proc sgplot data=points;
-	scatter x=x1 y=x2 / group=y;
-
-proc sgplot data=dat;
-	scatter x=x1 y=x2 / group=y markerattrs=(symbol=CircleFilled)
-		markeroutlineattrs=(thickness=5);
-	scatter x=x1points y=x2points / group=ypoints
-		markeroutlineattrs=(thickness=0.02);
 		
-		
-
-
-
-
-
-
-* ------------------------------ Bootstrap ------------------------------;
-samp = sample(1:n,n,'replace');
-
-
-
-* ------------------------------ Bootstrap ------------------------------;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
