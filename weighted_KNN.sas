@@ -14,6 +14,7 @@ proc iml;
 use xy; read all into xy;
 n = nrow(xy);
 
+
 * ------------------------- Train Test Split -------------------------;
 start train_test_split;
 	in = uniform(J(n,1,1))<train_percentage;
@@ -23,37 +24,6 @@ finish train_test_split;
 * ------------------------- Train Test Split -------------------------;
 train_percentage = 0.8;
 call train_test_split;
-
-
-
-* ------------------------- K Nearest Neighbors Model -------------------------;
-start K_nearest_neighbors(xy_train, xy_test, K);
-	
-	* compute distance matrix;
-	dist = J(nrow(xy_train), nrow(xy_test), 99);
-	do i=1 to nrow(xy_train);
-		do j=1 to nrow(xy_test);
-			dist[i,j] = sqrt((xy_train[i,2]-xy_test[j,2])**2 + (xy_train[i,3]-xy_test[j,3])**2);
-		end;
-	end;
-	
-	* sort data & collect K nearest;
-	do i=1 to ncol(dist);
-		col = dist[,i] || xy_train[,1];
-		call sort(col, {1});
-		pred = pred // col[1:k,2]`;
-	end;
-
-	print (nrow(pred)) (nrow(xy_test)) (nrow(xy_train));	
-	print pred;
-
-	return k;
-finish K_nearest_neighbors;
-* ------------------------- K Nearest Neighbors Model -------------------------;
-
-t = K_nearest_neighbors(xy_train, xy_test, 3);
-
-
 
 
 
@@ -77,14 +47,68 @@ end;
 
 
 
+* ------------------------- K Nearest Neighbors Model -------------------------;
+start K_nearest_neighbors(xy_train, xy_test, K);
+	
+	* compute distance matrix;
+	dist = J(nrow(xy_train), nrow(xy_test), 99);
+	do i=1 to nrow(xy_train);
+		do j=1 to nrow(xy_test);
+			dist[i,j] = sqrt((xy_train[i,2]-xy_test[j,2])**2 + (xy_train[i,3]-xy_test[j,3])**2);
+		end;
+	end;
+	
+	* sort data & collect K nearest;
+	weightz = J(nrow(xy_test), K, 0);
+	do i=1 to ncol(dist);
+		* ---------- Weighting Function --------- ;
+		* weight = 1/d;
+		col = dist[,i] || (1/dist[,i]) || xy_train[,1];
+		call sort(col, {1});
+		* weight predictions;
+		do j=1 to K;
+			if col[j,3]=1 then; weightz[i,1] = weightz[i,1] + col[j,2];
+			if col[j,3]=2 then; weightz[i,2] = weightz[i,2] + col[j,2];
+			if col[j,3]=3 then; weightz[i,3] = weightz[i,3] + col[j,2];
+		end;
+	end;
+	
+	* predict;
+	do i=1 to nrow(weightz);
+		pred = pred // max(weightz[i,<:>]);
+	end;
+	
+	return pred;
+finish K_nearest_neighbors;
+* ------------------------- K Nearest Neighbors Model -------------------------;
 
 
-* ------------------------- Weighting Function -------------------------;
-start weighting_function(points,distances);
-	weights = 1/distance;
-	return weights;
-finish weighting_function;
-* ------------------------- Weighting Function -------------------------;
+* run on testing data;
+pred = K_nearest_neighbors(xy_train, xy_test, 3);
+
+* run on grid;
+grid_pred = K_nearest_neighbors(xy_train, grid, 3);
+
+
+grid_results = (grid_pred || grid[,2:3] || J(nrow(grid_pred),1,1));
+res = (xy_train || J(nrow(xy_train),1,2)) // grid_results;
+
+create res from res[colname={'yh' 'x1' 'x2' 'set'}];
+append from res;
+quit;
+
+proc sgplot data=res;
+	scatter y=x2 x=x1 / group=yh;
+run;
+
+
+
+
+
+
+
+
+
 
 
 
